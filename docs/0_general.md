@@ -5,7 +5,7 @@
 - The public IP of the router is: `82.67.183.248`. (It should be hidden by cloudflare)
 - The local hostname is: `vestige`
 - Only HTTPS/443 should be port forward on the router
-- Tailscale vestige IP: `100.125.13.105`
+- Tailscale vestige IP: `100.125.13.105`, brainboard IP: `100.96.124.27`, magic dns: `tail94bb1d.ts.net`
 
 ## Namecheap steps:
 

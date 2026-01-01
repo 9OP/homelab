@@ -63,3 +63,11 @@ chmod 755 /mnt/storage
 ```sh
 df -h /mnt/storage
 ```
+
+## 7. Set directories
+
+```sh
+mkdir -p /mnt/storage/config/qbittorrent
+mkdir -p /mnt/storage/downloads
+sudo chown -R $USER:$USER /mnt/storage/config /mnt/storage/downloads
+```

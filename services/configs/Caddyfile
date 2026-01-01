@@ -1,0 +1,34 @@
+(origin_tls) {
+    tls /certs/origin.pem /certs/origin-key.pem
+    encode gzip
+}
+
+(header_secure) {
+    header {
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "no-referrer"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    }
+}
+
+# Public (CloudFlare)
+vestige-lab.xyz {
+    import origin_tls
+    import header_secure
+    root * /srv
+    file_server
+}
+
+# Internal - Tailscale only (HTTP)
+http://:80 {
+    route /torrent/* {
+        uri strip_prefix /torrent
+        reverse_proxy qbittorrent:8080
+    }
+
+    route /media/* {
+        uri strip_prefix /media
+        reverse_proxy jellyfin:8096
+    }
+}

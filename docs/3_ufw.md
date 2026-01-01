@@ -12,6 +12,9 @@ sudo ufw default allow outgoing
 # Allow SSH
 sudo ufw allow 22/tcp comment 'SSH'
 
+# Allow Tailscale
+sudo ufw allow from 100.64.0.0/10 to any port 80 proto tcp comment 'Tailscale'
+
 # Get Cloudflare IP ranges
 curl https://www.cloudflare.com/ips-v4 -o /tmp/cf_ips_v4.txt
 curl https://www.cloudflare.com/ips-v6 -o /tmp/cf_ips_v6.txt
