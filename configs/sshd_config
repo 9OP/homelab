@@ -1,0 +1,59 @@
+# Listen
+
+Port 22
+AddressFamily any
+ListenAddress 0.0.0.0
+ListenAddress ::
+
+# Authentication
+
+PermitRootLogin no
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+ChallengeResponseAuthentication no
+UsePAM yes
+
+PubkeyAuthentication yes
+AuthenticationMethods publickey
+
+AllowUsers martin
+PermitEmptyPasswords no
+
+# Reduce attack surface
+
+X11Forwarding no
+AllowAgentForwarding no
+PermitTunnel no
+GatewayPorts no
+PermitUserEnvironment no
+PermitTTY yes
+
+# Session limits / timeouts
+
+LoginGraceTime 20
+MaxAuthTries 3
+MaxSessions 2
+MaxStartups 10:30:60
+ClientAliveInterval 300
+ClientAliveCountMax 2
+
+# Logging
+
+LogLevel VERBOSE
+
+# Crypto (safe defaults on modern OpenSSH; keep explicit if desired)
+
+KexAlgorithms curve25519-sha256,curve25519-sha256@libssh.org
+Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com
+MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com
+
+# Disable slow DNS lookups
+
+UseDNS no
+
+# Allow Vscode remote
+
+Match User martin
+AllowTcpForwarding yes
+DisableForwarding no
+PermitOpen any
