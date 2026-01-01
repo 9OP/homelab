@@ -1,12 +1,12 @@
 # ~/.ssh/config (client)
 
-# From remote
+# From local
 
 Host vestige
-HostName 82.67.183.248
+HostName 100.125.13.105
 User martin
 IdentityFile ~/.ssh/id_ed25519_vestige
-Port 9222
+Port 22
 ServerAliveInterval 60
 ServerAliveCountMax 3
 Compression yes

@@ -1,21 +1,13 @@
-version: '3.8'
-
 services:
+  # Reverse proxy
   caddy:
     image: caddy:2-alpine
     container_name: caddy
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
+      - "443:443" # only https
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - ./site:/srv
       - ./certs:/certs
-      - caddy_data:/data
-      - caddy_config:/config
 
-
-volumes:
-  caddy_data:
-  caddy_config:

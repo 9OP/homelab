@@ -41,4 +41,30 @@ Edit `~/.ssh/config` with `configs/config`
 ssh vestigelocal
 ```
 
-## 6. Install packages (Client)
+## 6. Remote Access with Tailscale
+
+**Secure SSH from anywhere without exposing ports.**
+
+### Install on Pi
+
+```bash
+curl -fsSL https://tailscale.com/install.sh | sh
+sudo tailscale up
+```
+
+### Install on Mac
+
+```bash
+brew install tailscale
+tailscale up
+```
+
+### Get Tailscale IP
+
+```bash
+# On Pi
+tailscale ip -4
+
+# martin@vestige:~ $ tailscale ip -4
+# 100.125.13.105
+```
