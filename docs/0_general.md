@@ -6,7 +6,27 @@
 - The router port forward: `9222->22` to the raspberry
 - The local hostname is: `vestige`
 
-## Steps
+## Namecheap steps:
+
+Configure cloudflare as the authority name server.
+
+Then forget about namecheap, this is only the registrar.
+
+## Cloudflare steps:
+
+- Set A / CNAME records
+- Set security policy (eg. ban all IPs not from France, redirect https->http)
+- Create certs for origin server and place in /services/certs
+
+## Freebox router steps:
+
+`http://mafreebox.freebox.fr`
+
+- Find the IP of the raspberry (look at DHCP tab)
+- Assign static DHCP "bail" - prevent IP rotation on reboot
+- Create port forward on 80/443 to the raspberry
+
+## Rasbperry pi steps:
 
 - install raspberrypi os using image manager
 - connect to home router with ethernet

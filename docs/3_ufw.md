@@ -9,10 +9,18 @@
 sudo ufw default deny incoming
 sudo ufw default allow outgoing
 
-# Allow SSH and HTTP and HTTPS
-sudo ufw allow 22/tcp
-sudo ufw allow 80/tcp
-sudo ufw allow 443/tcp
+# Allow SSH
+sudo ufw allow 22/tcp comment 'SSH'
+
+# Get Cloudflare IP ranges
+curl https://www.cloudflare.com/ips-v4 -o /tmp/cf_ips_v4.txt
+curl https://www.cloudflare.com/ips-v6 -o /tmp/cf_ips_v6.txt
+
+# Allow only from Cloudflare IPs
+while read ip; do
+    sudo ufw allow from $ip to any port 80 proto tcp comment 'Cloudflare'
+    sudo ufw allow from $ip to any port 443 proto tcp comment 'Cloudflare'
+done < /tmp/cf_ips_v4.txt
 
 # Enable UFW
 sudo ufw enable

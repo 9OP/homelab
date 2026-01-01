@@ -1,0 +1,6 @@
+vestige-lab.xyz {
+    tls /certs/origin.pem /certs/origin-key.pem
+    root * /srv
+    file_server
+    encode gzip
+}
