@@ -1,53 +1,70 @@
 #!/bin/bash
 # Backup script for *arr application configs
-# Backs up Docker volumes to /mnt/storage/backups
+# Creates a single tar.gz archive of all Docker volumes
 
 set -e
 
 BACKUP_DIR="/mnt/storage/backups"
 DATE=$(date +%Y%m%d_%H%M%S)
-BACKUP_PATH="${BACKUP_DIR}/arr-configs-${DATE}"
+BACKUP_FILE="${BACKUP_DIR}/homelab-configs-${DATE}.tar.gz"
+TEMP_DIR="/tmp/homelab-backup-${DATE}"
 
-echo "Starting backup at ${DATE}..."
+echo "[$(date)] Starting backup..."
 
-# Create backup directory
-mkdir -p "${BACKUP_PATH}"
+# Create backup directory and temp structure
+mkdir -p "${BACKUP_DIR}"
+mkdir -p "${TEMP_DIR}/prowlarr_config"
+mkdir -p "${TEMP_DIR}/radarr_config"
+mkdir -p "${TEMP_DIR}/sonarr_config"
+mkdir -p "${TEMP_DIR}/jellyfin_config"
 
-# Backup each volume
-echo "Backing up Prowlarr config..."
+# Backup each volume directly to temp directory (uncompressed)
+echo "[$(date)] Backing up Prowlarr config..."
 docker run --rm \
-  -v prowlarr_config:/source:ro \
-  -v "${BACKUP_PATH}":/backup \
-  alpine tar czf /backup/prowlarr_config.tar.gz -C /source .
+  -v homelab_prowlarr_config:/source:ro \
+  -v "${TEMP_DIR}/prowlarr_config":/backup \
+  alpine sh -c "cp -a /source/. /backup/"
 
-echo "Backing up Radarr config..."
+echo "[$(date)] Backing up Radarr config..."
 docker run --rm \
-  -v radarr_config:/source:ro \
-  -v "${BACKUP_PATH}":/backup \
-  alpine tar czf /backup/radarr_config.tar.gz -C /source .
+  -v homelab_radarr_config:/source:ro \
+  -v "${TEMP_DIR}/radarr_config":/backup \
+  alpine sh -c "cp -a /source/. /backup/"
 
-echo "Backing up Sonarr config..."
+echo "[$(date)] Backing up Sonarr config..."
 docker run --rm \
-  -v sonarr_config:/source:ro \
-  -v "${BACKUP_PATH}":/backup \
-  alpine tar czf /backup/sonarr_config.tar.gz -C /source .
+  -v homelab_sonarr_config:/source:ro \
+  -v "${TEMP_DIR}/sonarr_config":/backup \
+  alpine sh -c "cp -a /source/. /backup/"
 
-echo "Backing up Jellyfin config..."
+echo "[$(date)] Backing up Jellyfin config..."
 docker run --rm \
-  -v jellyfin_config:/source:ro \
-  -v "${BACKUP_PATH}":/backup \
-  alpine tar czf /backup/jellyfin_config.tar.gz -C /source .
+  -v homelab_jellyfin_config:/source:ro \
+  -v "${TEMP_DIR}/jellyfin_config":/backup \
+  alpine sh -c "cp -a /source/. /backup/"
 
-# Create checksums
-echo "Creating checksums..."
-cd "${BACKUP_PATH}"
-sha256sum *.tar.gz > checksums.txt
+# Create single archive from all backups
+echo "[$(date)] Creating backup archive..."
+tar czf "${BACKUP_FILE}" -C "${TEMP_DIR}" \
+  prowlarr_config \
+  radarr_config \
+  sonarr_config \
+  jellyfin_config
+
+# Create checksum
+echo "[$(date)] Creating checksum..."
+cd "${BACKUP_DIR}"
+sha256sum "$(basename ${BACKUP_FILE})" > "homelab-configs-${DATE}.sha256"
+
+# Cleanup temp directory
+rm -rf "${TEMP_DIR}"
 
 # Keep only last 7 backups
-echo "Cleaning old backups..."
+echo "[$(date)] Cleaning old backups..."
 cd "${BACKUP_DIR}"
-ls -t | grep "arr-configs-" | tail -n +8 | xargs -r rm -rf
+ls -t homelab-configs-*.tar.gz 2>/dev/null | tail -n +8 | xargs -r rm -f
+ls -t homelab-configs-*.sha256 2>/dev/null | tail -n +8 | xargs -r rm -f
 
-echo "Backup complete: ${BACKUP_PATH}"
-echo "Backup size:"
-du -sh "${BACKUP_PATH}"
+echo "[$(date)] Backup complete: ${BACKUP_FILE}"
+echo "[$(date)] Backup size:"
+du -sh "${BACKUP_FILE}"
