@@ -12,6 +12,10 @@ sudo ufw default allow outgoing
 # Allow SSH
 sudo ufw allow 22/tcp comment 'SSH'
 
+# Allow qBittorrent (BitTorrent traffic needs public access)
+sudo ufw allow 6881/tcp comment 'qBittorrent'
+sudo ufw allow 6881/udp comment 'qBittorrent'
+
 # Allow Tailscale
 sudo ufw allow from 100.64.0.0/10 to any port 80 proto tcp comment 'Tailscale'
 
