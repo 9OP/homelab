@@ -13,6 +13,9 @@ volumes:
     driver: local
 
 services:
+  # Reverse proxy and web server
+  # Handles HTTPS certificates and routes traffic to internal services
+  # Access: http://torrent.vestige.internal, http://prowlarr.vestige.internal, etc.
   caddy:
     image: caddy:2.8.4-alpine
     container_name: caddy
@@ -36,6 +39,9 @@ services:
       timeout: 5s
       retries: 3
 
+  # DNS server for custom internal domain resolution
+  # Resolves *.vestige.internal domains to Tailscale IP
+  # Used by Tailscale split DNS configuration
   dnsmasq:
     image: tobi312/tools:dnsmasq
     container_name: dnsmasq
@@ -56,6 +62,9 @@ services:
       - SETGID
       - SETUID
 
+  # BitTorrent client for downloading torrents
+  # Downloads files sent by Radarr/Sonarr to /mnt/storage/downloads
+  # Access: http://torrent.vestige.internal
   qbittorrent:
     image: linuxserver/qbittorrent:5.0.0
     container_name: qbittorrent
@@ -77,6 +86,9 @@ services:
       timeout: 5s
       retries: 3
 
+  # Media server for streaming movies and TV shows
+  # Reads media from /mnt/storage/media (movies and tv folders)
+  # Access: https://media.vestige-lab.xyz (public) or internal via Tailscale
   jellyfin:
     image: linuxserver/jellyfin:10.10.3
     container_name: jellyfin
@@ -103,10 +115,17 @@ services:
       retries: 3
       start_period: 30s
 
+  # Indexer manager for torrent sites
+  # Manages torrent indexers/trackers and syncs them to Radarr/Sonarr
+  # Searches across multiple indexers for releases
+  # Access: http://prowlarr.vestige.internal
   prowlarr:
     image: linuxserver/prowlarr:latest
     container_name: prowlarr
     restart: unless-stopped
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     environment:
       PUID: 1000
       PGID: 1000
@@ -127,6 +146,10 @@ services:
       timeout: 5s
       retries: 3
 
+  # Movie collection manager
+  # Automatically searches, downloads, and organizes movies
+  # Sends torrents to qBittorrent and moves completed files to /mnt/storage/media/movies
+  # Access: http://radarr.vestige.internal
   radarr:
     image: linuxserver/radarr:latest
     container_name: radarr
@@ -153,6 +176,10 @@ services:
       timeout: 5s
       retries: 3
 
+  # TV show collection manager
+  # Automatically searches, downloads, and organizes TV series
+  # Sends torrents to qBittorrent and moves completed files to /mnt/storage/media/tv
+  # Access: http://sonarr.vestige.internal
   sonarr:
     image: linuxserver/sonarr:latest
     container_name: sonarr
@@ -178,22 +205,3 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
-
-  # backup:
-  #   image: alpine:3.19
-  #   container_name: backup
-  #   restart: unless-stopped
-  #   environment:
-  #     TZ: Europe/Paris
-  #   volumes:
-  #     - jellyfin_config:/volumes/jellyfin_config:ro
-  #     - prowlarr_config:/volumes/prowlarr_config:ro
-  #     - radarr_config:/volumes/radarr_config:ro
-  #     - /mnt/storage/backups:/backup
-  #     - ./scripts/backup.sh:/backup.sh:ro
-  #     - ./scripts/crontab:/etc/crontabs/root:ro
-  #   command: sh -c "crond -f -l 2"
-  #   networks: [homelab]
-  #   security_opt:
-  #     - no-new-privileges:true
-  #   cap_drop: [ALL]
