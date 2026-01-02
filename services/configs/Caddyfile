@@ -20,15 +20,16 @@ vestige-lab.xyz {
     file_server
 }
 
+media.vestige-lab.xyz {
+    import origin_tls
+    import header_secure
+    reverse_proxy jellyfin:8096
+}
+
 # Internal - Tailscale only (HTTP)
 http://:80 {
     route /torrent/* {
         uri strip_prefix /torrent
         reverse_proxy qbittorrent:8080
-    }
-
-    route /media/* {
-        uri strip_prefix /media
-        reverse_proxy jellyfin:8096
     }
 }

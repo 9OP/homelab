@@ -1,3 +1,11 @@
+networks:
+  homelab:
+    driver: bridge
+
+volumes:
+  jellyfin_config:
+    driver: local
+
 services:
   caddy:
     image: caddy:2.8.4-alpine
@@ -43,26 +51,30 @@ services:
       timeout: 5s
       retries: 3
 
-  # jellyfin:
-  #   image: linuxserver/jellyfin:latest
-  #   container_name: jellyfin
-  #   restart: unless-stopped
-  #   environment:
-  #     PUID: 1000
-  #     PGID: 1000
-  #     TZ: Europe/Paris
-  #   volumes:
-  #     - /mnt/storage/config/jellyfin:/config
-  #     - /mnt/storage/media:/media:ro
-  #   networks: [homelab]
-  #   security_opt:
-  #     - no-new-privileges:true
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "curl -f http://localhost:8096/health || exit 1"]
-  #     interval: 30s
-  #     timeout: 5s
-  #     retries: 3
-
-networks:
-  homelab:
-    driver: bridge
+  jellyfin:
+    image: linuxserver/jellyfin:10.10.3
+    # ports: # configuration wizard requires direct connection
+    #   - "8096:8096"
+    container_name: jellyfin
+    restart: unless-stopped
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/Paris
+    volumes:
+      - jellyfin_config:/config
+      - /mnt/storage/media:/media:ro
+    networks: [homelab]
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8096/health >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
