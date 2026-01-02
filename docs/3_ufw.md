@@ -16,6 +16,10 @@ sudo ufw allow 22/tcp comment 'SSH'
 sudo ufw allow 6881/tcp comment 'qBittorrent'
 sudo ufw allow 6881/udp comment 'qBittorrent'
 
+# Allow samba from local network
+sudo ufw allow from 192.168.1.0/24 to any port 445 comment 'Samba'
+sudo ufw allow from 192.168.1.0/24 to any port 139 comment 'Samba'
+
 # Allow Tailscale
 sudo ufw allow from 100.64.0.0/10 to any port 80 proto tcp comment 'Tailscale'
 
