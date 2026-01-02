@@ -1,0 +1,2 @@
+# Daily backup at 3 AM
+0 3 * * * /backup.sh >> /backup/backup.log 2>&1

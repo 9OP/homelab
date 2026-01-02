@@ -28,8 +28,7 @@ media.vestige-lab.xyz {
 
 # Internal - Tailscale only (HTTP)
 http://:80 {
-    route /torrent/* {
-        uri strip_prefix /torrent
+    handle_path /torrent/* {
         reverse_proxy qbittorrent:8080
     }
 }
