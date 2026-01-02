@@ -46,4 +46,8 @@ http://sonarr.vestige.internal {
     reverse_proxy sonarr:8989
 }
 
+http://files.vestige.internal {
+    reverse_proxy filebrowser:80
+}
+
 

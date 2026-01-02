@@ -179,6 +179,33 @@ services:
       timeout: 5s
       retries: 3
 
+  # Web-based file manager for browsing and managing server files
+  # Access all storage, uploads, downloads, and media files via browser
+  # Access: http://files.vestige.internal
+  filebrowser:
+    image: filebrowser/filebrowser:latest
+    container_name: filebrowser
+    restart: unless-stopped
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/Paris
+    volumes:
+      - /mnt/storage:/srv
+      - ./configs/filebrowser.db:/database.db
+    networks: [homelab]
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:80/health >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
   # TV show collection manager
   # Automatically searches, downloads, and organizes TV series
   # Sends torrents to qBittorrent and moves completed files to /mnt/storage/media/tv
