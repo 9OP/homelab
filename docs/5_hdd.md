@@ -70,6 +70,6 @@ df -h /mnt/storage
 mkdir -p /mnt/storage/config/qbittorrent
 mkdir -p /mnt/storage/downloads
 mkdir -p /mnt/storage/config/jellyfin
-mkdir -p /mnt/storage/media/{movies,series}
+mkdir -p /mnt/storage/media/{movies,tv}
 sudo chown -R $USER:$USER /mnt/storage/config /mnt/storage/downloads
 ```

@@ -75,7 +75,7 @@ services:
       TZ: Europe/Paris
       WEBUI_PORT: 8080
     volumes:
-      - ./configs/qbittorrent.conf:/config/qBittorrent/qBittorrent.conf:ro
+      - ./configs/qbittorrent.conf:/config/qBittorrent/qBittorrent.conf
       - /mnt/storage/downloads:/downloads
     networks: [homelab]
     security_opt:
@@ -99,7 +99,7 @@ services:
       TZ: Europe/Paris
     volumes:
       - jellyfin_config:/config
-      - /mnt/storage/media:/media:ro
+      - /mnt/storage/media:/media
     networks: [homelab]
     security_opt:
       - no-new-privileges:true
