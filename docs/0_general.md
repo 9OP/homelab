@@ -38,3 +38,11 @@ Then forget about namecheap, this is only the registrar.
 - install raspberrypi os using image manager
 - connect to home router with ethernet
 - proceed with SSH installation etc...
+
+## Deploy services to raspberry:
+
+```sh
+cd homelab
+scp -O -r ./services/* martin@vestige:/opt/homelab
+# then docker compose restart in vestige
+```

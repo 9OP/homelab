@@ -11,6 +11,8 @@ volumes:
     driver: local
   sonarr_config:
     driver: local
+  qbittorrent_config:
+    driver: local
 
 services:
   # Reverse proxy and web server
@@ -122,7 +124,7 @@ services:
       - "6881:6881/tcp"
       - "6881:6881/udp"
     volumes:
-      - ./configs/qbittorrent.conf:/config/qBittorrent/qBittorrent.conf
+      - qbittorrent_config:/config
       - /mnt/storage/downloads:/downloads
     networks: [homelab]
     security_opt:

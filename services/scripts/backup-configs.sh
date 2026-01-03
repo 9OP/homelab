@@ -16,6 +16,7 @@ mkdir -p "${BACKUP_DIR}"
 mkdir -p "${TEMP_DIR}/prowlarr_config"
 mkdir -p "${TEMP_DIR}/radarr_config"
 mkdir -p "${TEMP_DIR}/sonarr_config"
+mkdir -p "${TEMP_DIR}/qbittorrent_config"
 # mkdir -p "${TEMP_DIR}/jellyfin_config"
 
 # Backup each volume directly to temp directory (uncompressed)
@@ -37,6 +38,12 @@ docker run --rm \
   -v "${TEMP_DIR}/sonarr_config":/backup \
   alpine sh -c "cp -a /source/. /backup/"
 
+echo "[$(date)] Backing up qBittorrent config..."
+docker run --rm \
+  -v homelab_qbittorrent_config:/source:ro \
+  -v "${TEMP_DIR}/qbittorrent_config":/backup \
+  alpine sh -c "cp -a /source/. /backup/"
+
 # echo "[$(date)] Backing up Jellyfin config..."
 # docker run --rm \
 #   -v homelab_jellyfin_config:/source:ro \
@@ -48,7 +55,8 @@ echo "[$(date)] Creating backup archive..."
 tar czf "${BACKUP_FILE}" -C "${TEMP_DIR}" \
   prowlarr_config \
   radarr_config \
-  sonarr_config
+  sonarr_config \
+  qbittorrent_config
   # jellyfin_config
 
 # Create checksum

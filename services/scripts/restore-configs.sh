@@ -38,7 +38,7 @@ tar xzf "${BACKUP_FILE}" -C "${TEMP_DIR}"
 # Stop services
 echo "[$(date)] Stopping services..."
 cd /opt/homelab
-docker compose stop prowlarr radarr sonarr jellyfin
+docker compose stop prowlarr radarr sonarr qbittorrent jellyfin
 
 # Restore each volume
 if [ -d "${TEMP_DIR}/prowlarr_config" ]; then
@@ -65,11 +65,11 @@ if [ -d "${TEMP_DIR}/sonarr_config" ]; then
     alpine sh -c "rm -rf /target/* /target/..?* /target/.[!.]* 2>/dev/null || true && cp -a /source/. /target/"
 fi
 
-if [ -d "${TEMP_DIR}/jellyfin_config" ]; then
-  echo "[$(date)] Restoring Jellyfin config..."
+if [ -d "${TEMP_DIR}/qbittorrent_config" ]; then
+  echo "[$(date)] Restoring qBittorrent config..."
   docker run --rm \
-    -v homelab_jellyfin_config:/target \
-    -v "${TEMP_DIR}/jellyfin_config":/source:ro \
+    -v homelab_qbittorrent_config:/target \
+    -v "${TEMP_DIR}/qbittorrent_config":/source:ro \
     alpine sh -c "rm -rf /target/* /target/..?* /target/.[!.]* 2>/dev/null || true && cp -a /source/. /target/"
 fi
 
@@ -78,7 +78,7 @@ rm -rf "${TEMP_DIR}"
 
 # Start services
 echo "[$(date)] Starting services..."
-docker compose up -d prowlarr radarr sonarr jellyfin
+docker compose up -d prowlarr radarr sonarr qbittorrent jellyfin
 
 echo "[$(date)] Restore complete!"
 echo "Services are starting up. Check status with: docker compose ps"
