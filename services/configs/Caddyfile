@@ -39,7 +39,7 @@
 # Internal auth (basic auth). Generate hashes via:
 #   caddy hash-password --plaintext 'your-password'
 (internal_auth) {
-    basicauth {
+    basic_auth {
         martin $2a$14$inHSOn3BBH2MOwlEMp1PG.mvz6v7KYJSXjmQBkkEYesqr85W0kcwi
     }
 }
