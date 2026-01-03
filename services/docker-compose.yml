@@ -13,6 +13,10 @@ volumes:
     driver: local
   qbittorrent_config:
     driver: local
+  pihole_config:
+    driver: local
+  pihole_dnsmasq:
+    driver: local
 
 services:
   # Reverse proxy and web server
@@ -80,6 +84,29 @@ services:
       - NET_BIND_SERVICE
       - SETGID
       - SETUID
+
+  # # Pi-hole DNS ad blocker + custom DNS resolution
+  # # Replaces dnsmasq - handles both ad blocking AND *.vestige.internal DNS
+  # # Uses host networking to avoid Docker network isolation issues
+  # # Access web UI: http://192.168.1.108/admin
+  # pihole:
+  #   image: pihole/pihole:latest
+  #   container_name: pihole
+  #   restart: unless-stopped
+  #   hostname: vestige
+  #   network_mode: host
+  #   privileged: true
+  #   environment:
+  #     TZ: 'Europe/Paris'
+  #     WEBPASSWORD: '123'
+  #     PIHOLE_DNS_: '8.8.8.8;8.8.4.4'
+  #     IPv6: 'false'
+  #     DNSSEC: 'true'
+  #     DNSMASQ_LISTENING: 'all'
+  #   volumes:
+  #     - pihole_config:/etc/pihole
+  #     - pihole_dnsmasq:/etc/dnsmasq.d
+  #     - ./configs/pihole-custom.conf:/etc/dnsmasq.d/02-custom.conf:ro
 
   # Web-based file manager for browsing and managing server files
   # Access all storage, uploads, downloads, and media files via browser

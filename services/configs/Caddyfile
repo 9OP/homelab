@@ -103,3 +103,8 @@ http://sonarr.vestige.internal {
     import internal_common
     reverse_proxy sonarr:8989
 }
+
+http://pihole.vestige.internal {
+    import internal_common
+    reverse_proxy pihole:80
+}

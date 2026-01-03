@@ -23,6 +23,15 @@ sudo ufw allow from 192.168.1.0/24 to any port 139 comment 'Samba'
 # Allow Tailscale
 sudo ufw allow from 100.64.0.0/10 to any port 80 proto tcp comment 'Tailscale'
 
+# Add rule to allow DNS from local network
+sudo ufw allow from 192.168.1.0/24 to any port 53 proto udp comment 'Pi-hole DNS UDP'
+sudo ufw allow from 192.168.1.0/24 to any port 53 proto tcp comment 'Pi-hole DNS TCP'
+
+# Also allow from Tailscale network
+sudo ufw allow from 100.64.0.0/10 to any port 53 proto udp comment 'Pi-hole DNS Tailscale UDP'
+sudo ufw allow from 100.64.0.0/10 to any port 53 proto tcp comment 'Pi-hole DNS Tailscale TCP'
+
+
 # Get Cloudflare IP ranges
 curl https://www.cloudflare.com/ips-v4 -o /tmp/cf_ips_v4.txt
 curl https://www.cloudflare.com/ips-v6 -o /tmp/cf_ips_v6.txt
