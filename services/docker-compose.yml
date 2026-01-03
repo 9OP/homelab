@@ -39,6 +39,27 @@ services:
       timeout: 5s
       retries: 3
 
+  # Real-time system monitoring and performance metrics
+  # Monitor CPU, RAM, disk I/O, temperature, throttling, and processes
+  # Access: http://monitor.vestige.internal
+  netdata:
+    image: netdata/netdata:latest
+    container_name: netdata
+    restart: unless-stopped
+    hostname: vestige
+    environment:
+      PGID: 998  # docker group
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks: [homelab]
+    cap_add:
+      - SYS_PTRACE
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+
   # DNS server for custom internal domain resolution
   # Resolves *.vestige.internal domains to Tailscale IP
   # Used by Tailscale split DNS configuration
@@ -61,6 +82,33 @@ services:
       - NET_BIND_SERVICE
       - SETGID
       - SETUID
+
+  # Web-based file manager for browsing and managing server files
+  # Access all storage, uploads, downloads, and media files via browser
+  # Access: http://files.vestige.internal
+  filebrowser:
+    image: filebrowser/filebrowser:latest
+    container_name: filebrowser
+    restart: unless-stopped
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/Paris
+      FB_NOAUTH: "true"
+    volumes:
+      - /mnt/storage:/srv
+    networks: [homelab]
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:80/health >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
   # BitTorrent client for downloading torrents
   # Downloads files sent by Radarr/Sonarr to /mnt/storage/downloads
@@ -175,33 +223,6 @@ services:
       - SETGID
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:7878/ping >/dev/null || exit 1"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-
-  # Web-based file manager for browsing and managing server files
-  # Access all storage, uploads, downloads, and media files via browser
-  # Access: http://files.vestige.internal
-  filebrowser:
-    image: filebrowser/filebrowser:latest
-    container_name: filebrowser
-    restart: unless-stopped
-    environment:
-      PUID: 1000
-      PGID: 1000
-      TZ: Europe/Paris
-    volumes:
-      - /mnt/storage:/srv
-      - ./configs/filebrowser.db:/database.db
-    networks: [homelab]
-    security_opt:
-      - no-new-privileges:true
-    cap_drop: [ALL]
-    cap_add:
-      - CHOWN
-      - DAC_OVERRIDE
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:80/health >/dev/null || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3

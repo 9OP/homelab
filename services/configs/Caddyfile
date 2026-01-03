@@ -1,6 +1,23 @@
+{
+    # Global options (optional but useful)
+    # email you@example.com
+    servers {
+        # Keep defaults unless you know you need changes.
+    }
+
+    # Access logs (JSON to stdout is convenient for Docker)
+    log {
+        output stdout
+        format json
+    }
+}
+
 (origin_tls) {
-    tls /certs/origin.pem /certs/origin-key.pem
-    encode gzip
+    # Cloudflare Origin Cert (use with Cloudflare "Full (strict)")
+    tls /certs/origin.pem /certs/origin-key.pem {
+        protocols tls1.2 tls1.3
+    }
+    encode gzip zstd
 }
 
 (header_secure) {
@@ -8,15 +25,41 @@
         X-Content-Type-Options "nosniff"
         X-Frame-Options "DENY"
         Referrer-Policy "no-referrer"
+        Permissions-Policy "geolocation=(), microphone=(), camera=()"
+        # HSTS only matters on HTTPS; still fine to keep in the shared snippet.
         Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
     }
 }
 
-# Public (CloudFlare)
+# Only for static site; do NOT apply globally (apps often break under strict CSP)
+(header_static_csp) {
+    header Content-Security-Policy "default-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
+}
+
+# Internal auth (basic auth). Generate hashes via:
+#   caddy hash-password --plaintext 'your-password'
+(internal_auth) {
+    basicauth {
+        martin $2a$14$inHSOn3BBH2MOwlEMp1PG.mvz6v7KYJSXjmQBkkEYesqr85W0kcwi
+    }
+}
+
+# Common internal policy. If you keep internal HTTP, remove `tls internal` below.
+(internal_common) {
+    import header_secure
+    import internal_auth
+    encode gzip zstd
+    tls internal
+}
+
+
+# Public (Cloudflare)
 
 vestige-lab.xyz {
     import origin_tls
     import header_secure
+    import header_static_csp
+
     root * /srv
     file_server
 }
@@ -24,28 +67,39 @@ vestige-lab.xyz {
 media.vestige-lab.xyz {
     import origin_tls
     import header_secure
+
     reverse_proxy jellyfin:8096
 }
 
 
 # Internal (access via Tailscale)
 
+http://monitor.vestige.internal {
+    import internal_common
+    reverse_proxy netdata:19999
+}
+
 http://files.vestige.internal {
+    import internal_common
     reverse_proxy filebrowser:80
 }
 
 http://torrent.vestige.internal {
+    import internal_common
     reverse_proxy qbittorrent:8080
 }
 
 http://prowlarr.vestige.internal {
+    import internal_common
     reverse_proxy prowlarr:9696
 }
 
 http://radarr.vestige.internal {
+    import internal_common
     reverse_proxy radarr:7878
 }
 
 http://sonarr.vestige.internal {
+    import internal_common
     reverse_proxy sonarr:8989
 }
