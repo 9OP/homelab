@@ -3,7 +3,7 @@ networks:
     driver: bridge
 
 volumes:
-  jellyfin_config:
+  jellyfin_data:
     driver: local
   prowlarr_config:
     driver: local
@@ -13,9 +13,7 @@ volumes:
     driver: local
   qbittorrent_config:
     driver: local
-  pihole_config:
-    driver: local
-  pihole_dnsmasq:
+  bazarr_config:
     driver: local
 
 services:
@@ -129,11 +127,6 @@ services:
     cap_add:
       - CHOWN
       - DAC_OVERRIDE
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:80/health >/dev/null || exit 1"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
 
   # BitTorrent client for downloading torrents
   # Downloads files sent by Radarr/Sonarr to /mnt/storage/downloads
@@ -156,11 +149,6 @@ services:
     networks: [homelab]
     security_opt:
       - no-new-privileges:true
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080 >/dev/null || exit 1"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
 
   # Media server for streaming movies and TV shows
   # Reads media from /mnt/storage/media (movies and tv folders)
@@ -174,7 +162,7 @@ services:
       PGID: 1000
       TZ: Europe/Paris
     volumes:
-      - jellyfin_config:/config
+      - jellyfin_data:/config
       - /mnt/storage/media:/media
     networks: [homelab]
     security_opt:
@@ -210,11 +198,6 @@ services:
       - CHOWN
       - SETUID
       - SETGID
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:9696/ping >/dev/null || exit 1"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
 
   # Movie collection manager
   # Automatically searches, downloads, and organizes movies
@@ -240,11 +223,6 @@ services:
       - CHOWN
       - SETUID
       - SETGID
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:7878/ping >/dev/null || exit 1"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
 
   # TV show collection manager
   # Automatically searches, downloads, and organizes TV series
@@ -270,8 +248,28 @@ services:
       - CHOWN
       - SETUID
       - SETGID
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8989/ping >/dev/null || exit 1"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
+
+  # Subtitle manager for movies and TV shows
+  # Automatically downloads subtitles for media in Radarr and Sonarr
+  # Integrates with multiple subtitle providers (OpenSubtitles, etc.)
+  # Access: http://bazarr.vestige.internal
+  bazarr:
+    image: linuxserver/bazarr:latest
+    container_name: bazarr
+    restart: unless-stopped
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/Paris
+    volumes:
+      - bazarr_config:/config
+      - /mnt/storage/media/movies:/movies
+      - /mnt/storage/media/tv:/tv
+    networks: [homelab]
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID

@@ -1,63 +1,65 @@
 #!/bin/bash
 # Backup script for *arr application configs
 # Creates a single tar.gz archive of all Docker volumes
+# Automatically detects volumes from docker-compose.yml
 
 set -e
 
 BACKUP_DIR="/mnt/storage/backups"
+COMPOSE_FILE="${COMPOSE_FILE:-/opt/homelab/docker-compose.yml}"
 DATE=$(date +%Y%m%d_%H%M%S)
 BACKUP_FILE="${BACKUP_DIR}/homelab-configs-${DATE}.tar.gz"
 TEMP_DIR="/tmp/homelab-backup-${DATE}"
 
 echo "[$(date)] Starting backup..."
 
-# Create backup directory and temp structure
+# Extract volume names from docker-compose.yml (volumes ending with _config)
+echo "[$(date)] Detecting volumes from docker-compose.yml..."
+VOLUMES=$(grep -E '^\s+\w+_config:' "${COMPOSE_FILE}" | sed 's/://g' | tr -d ' ' | sort)
+
+if [ -z "$VOLUMES" ]; then
+  echo "Error: No config volumes found in ${COMPOSE_FILE}"
+  exit 1
+fi
+
+echo "[$(date)] Found volumes:"
+echo "$VOLUMES" | sed 's/^/  - /'
+
+# Create backup directory
 mkdir -p "${BACKUP_DIR}"
-mkdir -p "${TEMP_DIR}/prowlarr_config"
-mkdir -p "${TEMP_DIR}/radarr_config"
-mkdir -p "${TEMP_DIR}/sonarr_config"
-mkdir -p "${TEMP_DIR}/qbittorrent_config"
-# mkdir -p "${TEMP_DIR}/jellyfin_config"
 
-# Backup each volume directly to temp directory (uncompressed)
-echo "[$(date)] Backing up Prowlarr config..."
-docker run --rm \
-  -v homelab_prowlarr_config:/source:ro \
-  -v "${TEMP_DIR}/prowlarr_config":/backup \
-  alpine sh -c "cp -a /source/. /backup/"
+# Create temp directory structure and backup each volume
+VOLUME_DIRS=()
+for VOLUME in $VOLUMES; do
+  echo "[$(date)] Backing up ${VOLUME}..."
+  mkdir -p "${TEMP_DIR}/${VOLUME}"
 
-echo "[$(date)] Backing up Radarr config..."
-docker run --rm \
-  -v homelab_radarr_config:/source:ro \
-  -v "${TEMP_DIR}/radarr_config":/backup \
-  alpine sh -c "cp -a /source/. /backup/"
+  docker run --rm \
+    -v "homelab_${VOLUME}:/source:ro" \
+    -v "${TEMP_DIR}/${VOLUME}":/backup \
+    alpine sh -c "cp -a /source/. /backup/"
 
-echo "[$(date)] Backing up Sonarr config..."
-docker run --rm \
-  -v homelab_sonarr_config:/source:ro \
-  -v "${TEMP_DIR}/sonarr_config":/backup \
-  alpine sh -c "cp -a /source/. /backup/"
-
-echo "[$(date)] Backing up qBittorrent config..."
-docker run --rm \
-  -v homelab_qbittorrent_config:/source:ro \
-  -v "${TEMP_DIR}/qbittorrent_config":/backup \
-  alpine sh -c "cp -a /source/. /backup/"
-
-# echo "[$(date)] Backing up Jellyfin config..."
-# docker run --rm \
-#   -v homelab_jellyfin_config:/source:ro \
-#   -v "${TEMP_DIR}/jellyfin_config":/backup \
-#   alpine sh -c "cp -a /source/. /backup/"
+  VOLUME_DIRS+=("${VOLUME}")
+done
 
 # Create single archive from all backups
 echo "[$(date)] Creating backup archive..."
-tar czf "${BACKUP_FILE}" -C "${TEMP_DIR}" \
-  prowlarr_config \
-  radarr_config \
-  sonarr_config \
-  qbittorrent_config
-  # jellyfin_config
+# Use tar with --ignore-failed-read to continue even if some files are unreadable
+# Exclude socket files which can't be archived
+tar --ignore-failed-read \
+  --exclude='*.sock' \
+  --exclude='*-socket' \
+  --exclude='ipc-socket' \
+  -czf "${BACKUP_FILE}" \
+  -C "${TEMP_DIR}" \
+  "${VOLUME_DIRS[@]}" 2>&1 | grep -vE "(socket ignored|Permission denied)" || true
+
+# Verify archive was created successfully
+if [ ! -f "${BACKUP_FILE}" ] || [ ! -s "${BACKUP_FILE}" ]; then
+  echo "Error: Backup archive was not created or is empty"
+  rm -rf "${TEMP_DIR}"
+  exit 1
+fi
 
 # Create checksum
 echo "[$(date)] Creating checksum..."
