@@ -64,6 +64,15 @@ vestige-lab.xyz {
     file_server
 }
 
+
+budget.vestige-lab.xyz {
+    import origin_tls
+    import header_secure
+
+    reverse_proxy budget:8080
+}
+
+
 media.vestige-lab.xyz {
     import origin_tls
     import header_secure
@@ -113,3 +122,4 @@ http://pihole.vestige.internal {
     import internal_common
     reverse_proxy pihole:80
 }
+

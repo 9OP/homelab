@@ -38,28 +38,6 @@ services:
     cap_add:
       - NET_BIND_SERVICE
 
-  # Real-time system monitoring and performance metrics
-  # Monitor CPU, RAM, disk I/O, temperature, throttling, and processes
-  # Access: http://monitor.vestige.internal
-  netdata:
-    image: netdata/netdata:latest
-    container_name: netdata
-    restart: unless-stopped
-    hostname: vestige
-    environment:
-      PGID: 998  # docker group
-      NETDATA_DISABLE_CLOUD: 1
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    networks: [homelab]
-    cap_add:
-      - SYS_PTRACE
-      - SYS_ADMIN
-    security_opt:
-      - apparmor:unconfined
-
   # DNS server for custom internal domain resolution
   # Resolves *.vestige.internal domains to Tailscale IP
   # Used by Tailscale split DNS configuration
@@ -82,29 +60,6 @@ services:
       - NET_BIND_SERVICE
       - SETGID
       - SETUID
-
-  # # Pi-hole DNS ad blocker + custom DNS resolution
-  # # Replaces dnsmasq - handles both ad blocking AND *.vestige.internal DNS
-  # # Uses host networking to avoid Docker network isolation issues
-  # # Access web UI: http://192.168.1.108/admin
-  # pihole:
-  #   image: pihole/pihole:latest
-  #   container_name: pihole
-  #   restart: unless-stopped
-  #   hostname: vestige
-  #   network_mode: host
-  #   privileged: true
-  #   environment:
-  #     TZ: 'Europe/Paris'
-  #     WEBPASSWORD: '123'
-  #     PIHOLE_DNS_: '8.8.8.8;8.8.4.4'
-  #     IPv6: 'false'
-  #     DNSSEC: 'true'
-  #     DNSMASQ_LISTENING: 'all'
-  #   volumes:
-  #     - pihole_config:/etc/pihole
-  #     - pihole_dnsmasq:/etc/dnsmasq.d
-  #     - ./configs/pihole-custom.conf:/etc/dnsmasq.d/02-custom.conf:ro
 
   # Web-based file manager for browsing and managing server files
   # Access all storage, uploads, downloads, and media files via browser
@@ -273,3 +228,29 @@ services:
       - CHOWN
       - SETUID
       - SETGID
+
+  # Personal budget tracking app
+  # Access: http://budget.vestige.internal
+  budget:
+    image: ghcr.io/9op/budget:latest
+    container_name: budget
+    restart: unless-stopped
+    env_file: .env
+    networks: [homelab]
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+
+  # Polls registries hourly and restarts containers when new images are available
+  # Requires GHCR credentials in /root/.docker/config.json (docker login ghcr.io)
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: watchtower
+    restart: unless-stopped
+    environment:
+      WATCHTOWER_POLL_INTERVAL: "3600"
+      WATCHTOWER_CLEANUP: "true"
+      DOCKER_CONFIG: /config.json
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /root/.docker/config.json:/config.json:ro
