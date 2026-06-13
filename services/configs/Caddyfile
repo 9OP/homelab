@@ -117,9 +117,3 @@ http://bazarr.vestige.internal {
     import internal_common
     reverse_proxy bazarr:6767
 }
-
-http://pihole.vestige.internal {
-    import internal_common
-    reverse_proxy pihole:80
-}
-
