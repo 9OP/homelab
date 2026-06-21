@@ -100,6 +100,7 @@ services:
       - "6881:6881/udp"
     volumes:
       - qbittorrent_config:/config
+      - ./configs/qbittorrent/qBittorrent.conf:/config/qBittorrent/qBittorrent.conf
       - /mnt/storage/downloads:/downloads
     networks: [homelab]
     security_opt:
@@ -145,6 +146,7 @@ services:
       TZ: Europe/Paris
     volumes:
       - prowlarr_config:/config
+      - ./configs/prowlarr/config.xml:/config/config.xml
     networks: [homelab]
     security_opt:
       - no-new-privileges:true
@@ -168,6 +170,7 @@ services:
       TZ: Europe/Paris
     volumes:
       - radarr_config:/config
+      - ./configs/radarr/config.xml:/config/config.xml
       - /mnt/storage/media/movies:/movies
       - /mnt/storage/downloads:/downloads
     networks: [homelab]
@@ -193,6 +196,7 @@ services:
       TZ: Europe/Paris
     volumes:
       - sonarr_config:/config
+      - ./configs/sonarr/config.xml:/config/config.xml
       - /mnt/storage/media/tv:/tv
       - /mnt/storage/downloads:/downloads
     networks: [homelab]
