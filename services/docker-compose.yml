@@ -233,6 +233,7 @@ services:
   # Access: http://budget.vestige.internal
   budget:
     image: ghcr.io/9op/budget:latest
+    platform: linux/arm64
     container_name: budget
     restart: unless-stopped
     env_file: .env
@@ -240,6 +241,8 @@ services:
     security_opt:
       - no-new-privileges:true
     cap_drop: [ALL]
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=1
 
   # Polls registries hourly and restarts containers when new images are available
   # Requires GHCR credentials in /root/.docker/config.json (docker login ghcr.io)
