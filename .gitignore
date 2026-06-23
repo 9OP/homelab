@@ -4,19 +4,5 @@
 .env
 .DS_Store
 
-# Service data - exclude runtime noise, keep configs and databases
-services/data/jellyfin/log/
-services/data/jellyfin/cache/
-services/data/jellyfin/metadata/
-services/data/jellyfin/data/transcodes/
-services/data/prowlarr/logs/
-services/data/prowlarr/Definitions/
-services/data/radarr/logs/
-services/data/radarr/MediaCover/
-services/data/radarr/Backups/
-services/data/sonarr/logs/
-services/data/sonarr/MediaCover/
-services/data/sonarr/Backups/
-services/data/bazarr/log/
-services/data/bazarr/cache/
-services/data/qbittorrent/qBittorrent/logs/
+# Service runtime data - backed up via scripts/backup-configs.sh, not git
+services/data/
