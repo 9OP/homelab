@@ -1,23 +1,36 @@
 #!/bin/bash
-# Backup all service configs from bind-mount data dirs into a single tar.gz
+# Backup all service configs from named Docker volumes into a single tar.gz
 # Excludes heavy assets: logs, caches, thumbnails, transcodes, artwork
+# Volumes are prefixed with "homelab_" (set by `name: homelab` in docker-compose.yml)
 
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-SERVICES_DIR="$(dirname "$SCRIPT_DIR")"
 BACKUP_DIR="/mnt/storage/backups"
 DATE=$(date +%Y%m%d_%H%M%S)
 BACKUP_FILE="${BACKUP_DIR}/homelab-configs-${DATE}.tar.gz"
+TEMP_DIR="/tmp/homelab-backup-${DATE}"
+
+VOLUMES=(
+  "jellyfin_data"
+  "prowlarr_config"
+  "radarr_config"
+  "sonarr_config"
+  "bazarr_config"
+  "qbittorrent_config"
+)
 
 echo "[$(date)] Starting backup..."
+mkdir -p "${BACKUP_DIR}" "${TEMP_DIR}"
 
-if [ ! -d "${SERVICES_DIR}/data" ]; then
-  echo "Error: ${SERVICES_DIR}/data not found"
-  exit 1
-fi
-
-mkdir -p "${BACKUP_DIR}"
+for vol in "${VOLUMES[@]}"; do
+  echo "[$(date)] Backing up ${vol}..."
+  mkdir -p "${TEMP_DIR}/${vol}"
+  docker run --rm \
+    -v "homelab_${vol}:/source:ro" \
+    -v "${TEMP_DIR}/${vol}:/dest" \
+    alpine sh -c "cp -a /source/. /dest/" 2>/dev/null \
+    || echo "  Warning: homelab_${vol} not found, skipping"
+done
 
 echo "[$(date)] Creating archive (excluding logs, caches, artwork)..."
 tar --ignore-failed-read \
@@ -32,8 +45,10 @@ tar --ignore-failed-read \
   --exclude='*/Definitions' \
   --exclude='*/data/transcodes' \
   -czf "${BACKUP_FILE}" \
-  -C "${SERVICES_DIR}" \
-  data/ 2>&1 | grep -vE "(socket ignored|Permission denied)" || true
+  -C "${TEMP_DIR}" \
+  "${VOLUMES[@]}" 2>&1 | grep -vE "(socket|Permission denied)" || true
+
+rm -rf "${TEMP_DIR}"
 
 if [ ! -f "${BACKUP_FILE}" ] || [ ! -s "${BACKUP_FILE}" ]; then
   echo "Error: Backup archive was not created or is empty"

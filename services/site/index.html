@@ -1,11 +1,70 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Homelab</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            background: #0f0f0f;
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+        }
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: #888;
+            margin-bottom: 2rem;
+        }
+        .services {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+        }
+        a.service {
+            display: block;
+            padding: 1.25rem 2rem;
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #e0e0e0;
+            font-size: 1rem;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        a.service:hover {
+            background: #222;
+            border-color: #555;
+        }
+        a.service .label {
+            display: block;
+            font-size: 0.75rem;
+            color: #555;
+            margin-top: 0.25rem;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <h1>Hello World\!</h1>
-        <p>Homelab is running</p>
+        <h1>vestige-lab</h1>
+        <div class="services">
+            <a class="service" href="https://media.vestige-lab.xyz">
+                Media
+                <span class="label">Jellyfin</span>
+            </a>
+            <a class="service" href="https://budget.vestige-lab.xyz">
+                Budget
+                <span class="label">Finance tracker</span>
+            </a>
+        </div>
     </div>
 </body>
 </html>

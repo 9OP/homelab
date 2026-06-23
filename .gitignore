@@ -4,5 +4,4 @@
 .env
 .DS_Store
 
-# Service runtime data - backed up via scripts/backup-configs.sh, not git
-services/data/
+# Service runtime data lives in named Docker volumes, backed up via scripts/backup-configs.sh

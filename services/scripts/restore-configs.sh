@@ -1,10 +1,21 @@
 #!/bin/bash
-# Restore service configs from a backup archive into bind-mount data dirs
+# Restore service configs from a backup archive into named Docker volumes
+# Volumes are prefixed with "homelab_" (set by `name: homelab` in docker-compose.yml)
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SERVICES_DIR="$(dirname "$SCRIPT_DIR")"
+TEMP_DIR="/tmp/homelab-restore-$$"
+
+VOLUMES=(
+  "jellyfin_data"
+  "prowlarr_config"
+  "radarr_config"
+  "sonarr_config"
+  "bazarr_config"
+  "qbittorrent_config"
+)
 
 if [ -z "$1" ]; then
   echo "Usage: $0 <backup-file.tar.gz>"
@@ -23,23 +34,32 @@ if [ ! -f "${BACKUP_FILE}" ]; then
 fi
 
 echo "[$(date)] Restoring from: ${BACKUP_FILE}"
-echo "WARNING: This will overwrite current configs in ${SERVICES_DIR}/data/"
+echo "WARNING: This will overwrite current service configs!"
 read -p "Continue? (yes/no): " confirm
-
-if [ "$confirm" != "yes" ]; then
-  echo "Restore cancelled."
-  exit 0
-fi
+[ "$confirm" = "yes" ] || { echo "Restore cancelled."; exit 0; }
 
 echo "[$(date)] Stopping services..."
 cd "${SERVICES_DIR}"
 docker compose down
 
 echo "[$(date)] Extracting backup..."
-tar xzf "${BACKUP_FILE}" -C "${SERVICES_DIR}"
+mkdir -p "${TEMP_DIR}"
+tar xzf "${BACKUP_FILE}" -C "${TEMP_DIR}"
 
-echo "[$(date)] Fixing permissions..."
-chown -R 1000:1000 "${SERVICES_DIR}/data/"
+for vol in "${VOLUMES[@]}"; do
+  if [ -d "${TEMP_DIR}/${vol}" ]; then
+    echo "[$(date)] Restoring ${vol}..."
+    docker volume create "homelab_${vol}" 2>/dev/null || true
+    docker run --rm \
+      -v "${TEMP_DIR}/${vol}:/source:ro" \
+      -v "homelab_${vol}:/target" \
+      alpine sh -c "rm -rf /target/* /target/.[!.]* 2>/dev/null; cp -a /source/. /target/"
+  else
+    echo "[$(date)] Warning: ${vol} not found in backup, skipping..."
+  fi
+done
+
+rm -rf "${TEMP_DIR}"
 
 echo "[$(date)] Starting services..."
 docker compose up -d

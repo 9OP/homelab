@@ -1,54 +1,36 @@
 # Backup & Restore
 
-Backup all service configs (Prowlarr, Radarr, Sonarr, Jellyfin) to a single compressed archive.
+Configs for all services (Jellyfin, Prowlarr, Radarr, Sonarr, Bazarr, qBittorrent) are backed up from named Docker volumes into a single compressed archive. Logs, caches, and media artwork are excluded.
 
 **Location:** `/mnt/storage/backups/`
 **Format:** `homelab-configs-YYYYMMDD_HHMMSS.tar.gz`
 **Retention:** Last 7 backups kept automatically
 
-## Create Backup
+## Backup
 
 ```sh
-cd /opt/homelab/scripts
-./backup-configs.sh
+sudo /opt/Homelab/services/scripts/backup-configs.sh
 ```
 
-## Restore Backup
+## Restore
 
 ```sh
-cd /opt/homelab/scripts
-
 # List available backups
-./restore-configs.sh
+/opt/Homelab/services/scripts/restore-configs.sh
 
-# Restore specific backup
-./restore-configs.sh /mnt/storage/backups/homelab-configs-20260102_150000.tar.gz
+# Restore a specific backup (stops services, restores volumes, restarts)
+sudo /opt/Homelab/services/scripts/restore-configs.sh /mnt/storage/backups/homelab-configs-YYYYMMDD_HHMMSS.tar.gz
 ```
 
-## Operational Commands
+## Other
 
 ```sh
-# List backups
-ls -lh /mnt/storage/backups/
-
 # Verify checksum
-cd /mnt/storage/backups
-sha256sum -c homelab-configs-20260102_150000.sha256
+cd /mnt/storage/backups && sha256sum -c homelab-configs-YYYYMMDD_HHMMSS.sha256
 
-# View backup contents
-tar -tzf homelab-configs-20260102_150000.tar.gz
+# Inspect contents
+tar -tzf /mnt/storage/backups/homelab-configs-YYYYMMDD_HHMMSS.tar.gz
 
-# Download backup to local machine
-scp -O martin@vestigelocal:/mnt/storage/backups/homelab-configs-20260102_150000.tar.gz ~/Downloads/
-
-# Manual cleanup (keep last 3)
-cd /mnt/storage/backups
-ls -t homelab-configs-*.tar.gz | tail -n +4 | xargs rm -f
-ls -t homelab-configs-*.sha256 | tail -n +4 | xargs rm -f
+# Download to local machine
+scp martin@vestige:/mnt/storage/backups/homelab-configs-YYYYMMDD_HHMMSS.tar.gz ~/Downloads/
 ```
-
-## Notes
-
-- Backups include configs/metadata only (not media files)
-- Services are stopped during restore
-- Media in `/mnt/storage/media/` is unaffected by restore

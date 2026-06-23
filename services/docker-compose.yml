@@ -1,6 +1,16 @@
+name: homelab
+
 networks:
   homelab:
     driver: bridge
+
+volumes:
+  jellyfin_data:
+  prowlarr_config:
+  radarr_config:
+  sonarr_config:
+  bazarr_config:
+  qbittorrent_config:
 
 services:
   # Reverse proxy and web server
@@ -85,7 +95,7 @@ services:
       - "6881:6881/tcp"
       - "6881:6881/udp"
     volumes:
-      - ./data/qbittorrent:/config
+      - qbittorrent_config:/config
       - /mnt/storage/downloads:/downloads
     networks: [homelab]
     security_opt:
@@ -103,7 +113,7 @@ services:
       PGID: 1000
       TZ: Europe/Paris
     volumes:
-      - ./data/jellyfin:/config
+      - jellyfin_data:/config
       - /mnt/storage/media:/media
     networks: [homelab]
     security_opt:
@@ -130,7 +140,7 @@ services:
       PGID: 1000
       TZ: Europe/Paris
     volumes:
-      - ./data/prowlarr:/config
+      - prowlarr_config:/config
     networks: [homelab]
     security_opt:
       - no-new-privileges:true
@@ -153,7 +163,7 @@ services:
       PGID: 1000
       TZ: Europe/Paris
     volumes:
-      - ./data/radarr:/config
+      - radarr_config:/config
       - /mnt/storage/media/movies:/movies
       - /mnt/storage/downloads:/downloads
     networks: [homelab]
@@ -178,7 +188,7 @@ services:
       PGID: 1000
       TZ: Europe/Paris
     volumes:
-      - ./data/sonarr:/config
+      - sonarr_config:/config
       - /mnt/storage/media/tv:/tv
       - /mnt/storage/downloads:/downloads
     networks: [homelab]
@@ -203,7 +213,7 @@ services:
       PGID: 1000
       TZ: Europe/Paris
     volumes:
-      - ./data/bazarr:/config
+      - bazarr_config:/config
       - /mnt/storage/media/movies:/movies
       - /mnt/storage/media/tv:/tv
     networks: [homelab]
