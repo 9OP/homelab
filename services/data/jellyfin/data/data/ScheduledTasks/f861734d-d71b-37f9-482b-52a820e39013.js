@@ -1,0 +1,1 @@
+{"StartTimeUtc":"2026-06-23T16:29:34.128003Z","EndTimeUtc":"2026-06-23T16:29:34.1289252Z","Status":"Completed","Name":"Media Segment Scan","Key":"TaskExtractMediaSegments","Id":"f861734dd71b37f9482b52a820e39013"}
