@@ -2,20 +2,6 @@ networks:
   homelab:
     driver: bridge
 
-volumes:
-  jellyfin_data:
-    driver: local
-  prowlarr_config:
-    driver: local
-  radarr_config:
-    driver: local
-  sonarr_config:
-    driver: local
-  qbittorrent_config:
-    driver: local
-  bazarr_config:
-    driver: local
-
 services:
   # Reverse proxy and web server
   # Handles HTTPS certificates and routes traffic to internal services
@@ -99,8 +85,7 @@ services:
       - "6881:6881/tcp"
       - "6881:6881/udp"
     volumes:
-      - qbittorrent_config:/config
-      - ./configs/qbittorrent/qBittorrent.conf:/config/qBittorrent/qBittorrent.conf
+      - ./data/qbittorrent:/config
       - /mnt/storage/downloads:/downloads
     networks: [homelab]
     security_opt:
@@ -118,7 +103,7 @@ services:
       PGID: 1000
       TZ: Europe/Paris
     volumes:
-      - jellyfin_data:/config
+      - ./data/jellyfin:/config
       - /mnt/storage/media:/media
     networks: [homelab]
     security_opt:
@@ -145,8 +130,7 @@ services:
       PGID: 1000
       TZ: Europe/Paris
     volumes:
-      - prowlarr_config:/config
-      - ./configs/prowlarr/config.xml:/config/config.xml
+      - ./data/prowlarr:/config
     networks: [homelab]
     security_opt:
       - no-new-privileges:true
@@ -169,8 +153,7 @@ services:
       PGID: 1000
       TZ: Europe/Paris
     volumes:
-      - radarr_config:/config
-      - ./configs/radarr/config.xml:/config/config.xml
+      - ./data/radarr:/config
       - /mnt/storage/media/movies:/movies
       - /mnt/storage/downloads:/downloads
     networks: [homelab]
@@ -195,8 +178,7 @@ services:
       PGID: 1000
       TZ: Europe/Paris
     volumes:
-      - sonarr_config:/config
-      - ./configs/sonarr/config.xml:/config/config.xml
+      - ./data/sonarr:/config
       - /mnt/storage/media/tv:/tv
       - /mnt/storage/downloads:/downloads
     networks: [homelab]
@@ -221,7 +203,7 @@ services:
       PGID: 1000
       TZ: Europe/Paris
     volumes:
-      - bazarr_config:/config
+      - ./data/bazarr:/config
       - /mnt/storage/media/movies:/movies
       - /mnt/storage/media/tv:/tv
     networks: [homelab]
